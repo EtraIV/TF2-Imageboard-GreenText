@@ -1,18 +1,19 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION            "1.0.0"
+#define PLUGIN_VERSION            "1.1.0"
 #define PLUGIN_VERSION_CVAR       "sm_4chquoter_version"
 
 public Plugin myinfo = 
 {
 	name = "[TF2] Imageboard Green Text",
-	author = "2010kohtep",
+	author = "2010kohtep, Etra",
 	description = "Print quote-styled text in global chat.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/2010kohtep"
+	url = "https://github.com/EtraIV/TF2-Imageboard-GreenText"
 };
 
 ConVar g4chVersion;
@@ -29,37 +30,14 @@ public Action OnSay(client, const String:command[], argc)
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
 
-	decl String:text[128];
+	char text[128];
+	char output[256];
 	
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
-	
-	if (text[0] == '>')
-	{
-		decl String:output[256];
 
-		switch (GetClientTeam(client))
-		{
-			case TFTeam_Blue:
-			{
-				Format(output, sizeof(output), "\x0799CCFF%N\x01 : \x05%s", client, text);
-			}
-			
-			case TFTeam_Red:
-			{
-				Format(output, sizeof(output), "\x07FF4040%N\x01 : \x05%s", client, text);
-			}
-			
-			default:
-			{
-				Format(output, sizeof(output), "\x07CCCCCC%N\x01 : \x05%s", client, text);
-			}
-		}
-		
-		PrintToChatAll(output);
+	Format(output, sizeof(output), text[0] == '>' ? "\x07117743Anonymous\x01 : \x07789922%s" : "\x07117743Anonymous\x01 : %s", text);
 
-		return Plugin_Handled;
-	}
-	
-	return Plugin_Continue;
+	PrintToChatAll(output);
+	return Plugin_Handled;
 }
