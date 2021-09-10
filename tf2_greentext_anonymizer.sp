@@ -4,11 +4,10 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION            "1.2.0"
+#define PLUGIN_VERSION            "1.3.0"
 #define PLUGIN_VERSION_CVAR       "sm_4chquoter_version"
 
-public Plugin myinfo = 
-{
+public Plugin myinfo =  {
 	name = "[TF2] Anonymizer and Greentexter",
 	author = "2010kohtep, Etra",
 	description = "Greentexts lines that start with a >, and anonymizes usernames in chat.",
@@ -49,17 +48,13 @@ public Action OnSay(int client, const char[] command, int argc)
 		PrintToChatAll(text[0] == '>' ? "\x07117743Anonymous\x01 : \x07789922%s" : "\x07117743Anonymous\x01 : %s", text);
 	} else {
 		if (text[0] == '>') {
-			char output[256];
-
+			char color[5];
 			switch (GetClientTeam(client)) {
-				case TFTeam_Blue:
-					Format(output, sizeof(output), "\x0799CCFF%N\x01 : \x07789922%s", client, text);
-				case TFTeam_Red:
-					Format(output, sizeof(output), "\x07FF4040%N\x01 : \x07789922%s", client, text);
-				default:
-					Format(output, sizeof(output), "\x07CCCCCC%N\x01 : \x07789922%s", client, text);
+				case TFTeam_Blue:	color = "\x0799CCFF";
+				case TFTeam_Red:	color = "\x07FF4040";
+				default:			color = "\x07CCCCCC";
 			}
-			PrintToChatAll(output);
+			PrintToChatAll("\x01%s%s%N\x01 : \x07789922%s", IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ", color, client, text);
 		} else {
 			return Plugin_Continue;
 		}
