@@ -28,7 +28,9 @@ public void OnPluginStart()
 
 public Action SelfAdvertise(Handle timer)
 {
-	PrintToChatAll("It's \x07117743Anonymous \x01Friday! All names in allchat are anonymized.");
+	PrintToChatAll("It's Anonymous Friday! All names in allchat are anonymized.");
+
+	return Plugin_Continue;
 }
 
 public Action OnSay(int client, const char[] command, int argc)
