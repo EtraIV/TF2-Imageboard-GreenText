@@ -23,6 +23,7 @@ public void OnPluginStart()
 	AddCommandListener(OnSay, "say");
 	
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
+	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 }
 
 public Action OnSay(int client, const char command[], int argc)
@@ -31,13 +32,10 @@ public Action OnSay(int client, const char command[], int argc)
 		return Plugin_Continue;
 
 	char text[128];
-	char output[256];
 	
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 
-	Format(output, sizeof(output), text[0] == '>' ? "\x07117743Anonymous\x01 : \x07789922%s" : "\x07117743Anonymous\x01 : %s", text);
-
-	PrintToChatAll(output);
+	PrintToChatAll(text[0] == '>' ? "\x07117743Anonymous\x01 : \x07789922%s" : "\x07117743Anonymous\x01 : %s", text);
 	return Plugin_Handled;
 }
