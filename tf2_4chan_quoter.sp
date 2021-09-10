@@ -31,7 +31,7 @@ public Action SelfAdvertise(Handle timer)
 	PrintToChatAll("It's \x07117743Anonymous \x01Friday! All names in allchat are anonymized.");
 }
 
-public Action OnSay(int client, const char command[], int argc)
+public Action OnSay(int client, const char[] command, int argc)
 {
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
