@@ -25,7 +25,7 @@ public void OnPluginStart()
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
 }
 
-public Action OnSay(client, const String:command[], argc)
+public Action OnSay(int client, const char command[], int argc)
 {
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
