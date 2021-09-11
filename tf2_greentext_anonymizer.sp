@@ -4,10 +4,10 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION            "1.4.0"
+#define PLUGIN_VERSION            "1.4.1"
 #define PLUGIN_VERSION_CVAR       "sm_4chquoter_version"
 
-public Plugin myinfo =  {
+public Plugin myinfo = {
 	name = "[TF2] Greentexter and Anonymizer",
 	author = "2010kohtep, Etra",
 	description = "Greentexts lines that start with a >, and anonymizes usernames in chat.",
@@ -17,13 +17,15 @@ public Plugin myinfo =  {
 
 ConVar g4chVersion;
 ConVar g_cvAnonymize;
+ConVar g_cvColoredBrohoof;
 
 public void OnPluginStart()
 {	
 	AddCommandListener(OnSay, "say");
 	
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
-	g_cvAnonymize = CreateConVar("sm_anonymize", "1", "Enables name anonymization in chat", FCVAR_PROTECTED);
+	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_NOTIFY);
+	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_NOTIFY);
 	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 }
 
@@ -57,24 +59,28 @@ public Action OnSay(int client, const char[] command, int argc)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 	
-	if (!strcmp("/)", text) || !strcmp("(\\", text) || !strcmp("/]", text) || !strcmp("[\\", text))
-		GetManeSixColorPrefix(color, sizeof(color));
-	else if (text[0] == '/')
-		return Plugin_Continue;		
+	if (!strcmp("/)", text) || !strcmp("(\\", text) || !strcmp("/]", text) || !strcmp("[\\", text)) {
+		if (g_cvColoredBrohoof.BoolValue)
+			GetManeSixColorPrefix(color, sizeof(color));
+	} else if (text[0] == '/') {
+		return Plugin_Continue;
+	}
 	
 	if (text[0] == '>')
 		strcopy(color, sizeof(color), "\x07789922");
 
 	if (g_cvAnonymize.BoolValue) {
 		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", color, text);
+		PrintToServer("Anonymous: %s", text);
 	} else {
 		char prefix[13];
 		switch (GetClientTeam(client)) {
-			case TFTeam_Blue:	prefix = IsPlayerAlive(client) ? "\x0799CCFF" : "*DEAD* \x0799CCFF";
-			case TFTeam_Red:	prefix = IsPlayerAlive(client) ? "\x07FF4040" : "*DEAD* \x07FF4040";
-			default:		prefix = "*SPEC* \x07CCCCCC";
+			case TFTeam_Blue:	Format(prefix, sizeof(prefix), "%s\x0799CCFF", IsPlayerAlive(client) ? NULL_STRING :  "\x01*DEAD* ");
+			case TFTeam_Red:	Format(prefix, sizeof(prefix), "%s\x07FF4040", IsPlayerAlive(client) ? NULL_STRING : "\x01*DEAD* ");
+			default:		strcopy(prefix, sizeof(prefix), "*SPEC* \x07CCCCCC");
 		}
 		PrintToChatAll("\x01%s%N\x01 :  %s%s", prefix, client, color, text);
+		PrintToServer("%N: %s", client, text);
 	}
 
 	return Plugin_Handled;
