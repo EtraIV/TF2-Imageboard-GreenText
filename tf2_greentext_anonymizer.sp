@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION            "1.3.1"
+#define PLUGIN_VERSION            "1.4.0"
 #define PLUGIN_VERSION_CVAR       "sm_4chquoter_version"
 
 public Plugin myinfo =  {
@@ -35,33 +35,46 @@ public Action SelfAdvertise(Handle timer)
 	return Plugin_Continue;
 }
 
+void GetManeSixColorPrefix(char[] prefix, int length)
+{
+	switch(GetRandomInt(0, 5)) {
+		case 0: strcopy(prefix, length, "\x07B57ECA");
+		case 1: strcopy(prefix, length, "\x07EAEEF0");
+		case 2: strcopy(prefix, length, "\x07E97035");
+		case 3: strcopy(prefix, length, "\x07E580AD");
+		case 4: strcopy(prefix, length, "\x07EAD566");
+		case 5: strcopy(prefix, length, "\x0769A9DC");
+	}
+}
+
 public Action OnSay(int client, const char[] command, int argc)
 {
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
 
-	char text[128];
+	char color[8] = "\x01", text[128];
 	
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
+	
+	if (!strcmp("/)", text) || !strcmp("(\\", text) || !strcmp("/]", text) || !strcmp("[\\", text))
+		GetManeSixColorPrefix(color, sizeof(color));
+	else if (text[0] == '/')
+		return Plugin_Continue;		
+	
+	if (text[0] == '>')
+		strcopy(color, sizeof(color), "\x07789922");
 
 	if (g_cvAnonymize.BoolValue) {
-		if (text[0] == '/')
-			return Plugin_Continue;
-
-		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", text[0] == '>' ? "\x07789922" : NULL_STRING, text);
+		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", color, text);
 	} else {
-		if (text[0] == '>') {
-			char prefix[13];
-			switch (GetClientTeam(client)) {
+		char prefix[13];
+		switch (GetClientTeam(client)) {
 			case TFTeam_Blue:	prefix = IsPlayerAlive(client) ? "\x0799CCFF" : "*DEAD* \x0799CCFF";
 			case TFTeam_Red:	prefix = IsPlayerAlive(client) ? "\x07FF4040" : "*DEAD* \x07FF4040";
 			default:		prefix = "*SPEC* \x07CCCCCC";
-			}
-			PrintToChatAll("\x01%s%N\x01 :  \x07789922%s", prefix, client, text);
-		} else {
-			return Plugin_Continue;
 		}
+		PrintToChatAll("\x01%s%N\x01 :  %s%s", prefix, client, color, text);
 	}
 
 	return Plugin_Handled;
