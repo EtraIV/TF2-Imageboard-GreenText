@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION            "1.4.1"
+#define PLUGIN_VERSION            "1.4.2"
 #define PLUGIN_VERSION_CVAR       "sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -73,10 +73,10 @@ public Action OnSay(int client, const char[] command, int argc)
 		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", color, text);
 		PrintToServer("Anonymous: %s", text);
 	} else {
-		char prefix[13];
+		char prefix[16];
 		switch (GetClientTeam(client)) {
-			case TFTeam_Blue:	Format(prefix, sizeof(prefix), "%s\x0799CCFF", IsPlayerAlive(client) ? NULL_STRING :  "\x01*DEAD* ");
-			case TFTeam_Red:	Format(prefix, sizeof(prefix), "%s\x07FF4040", IsPlayerAlive(client) ? NULL_STRING : "\x01*DEAD* ");
+			case TFTeam_Blue:	Format(prefix, sizeof(prefix), "%s\x0799CCFF", IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
+			case TFTeam_Red:	Format(prefix, sizeof(prefix), "%s\x07FF4040", IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
 			default:		strcopy(prefix, sizeof(prefix), "*SPEC* \x07CCCCCC");
 		}
 		PrintToChatAll("\x01%s%N\x01 :  %s%s", prefix, client, color, text);
