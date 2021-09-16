@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION		"1.4.6"
+#define PLUGIN_VERSION		"1.5.0"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -19,6 +19,9 @@ ConVar g4chVersion;
 ConVar g_cvAnonymize;
 ConVar g_cvColoredBrohoof;
 
+GlobalForward g_FloodCheck;
+GlobalForward g_FloodResult;
+
 public void OnPluginStart()
 {
 	AddCommandListener(OnSay, "say");
@@ -26,6 +29,10 @@ public void OnPluginStart()
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
 	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_PROTECTED);
 	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_PROTECTED);
+
+	g_FloodCheck = new GlobalForward("OnClientFloodCheck", ET_Single, Param_Cell);
+	g_FloodResult = new GlobalForward("OnClientFloodResult", ET_Event, Param_Cell, Param_Cell);
+
 	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 }
 
@@ -49,13 +56,36 @@ void GetManeSixColorPrefix(char[] prefix, int length)
 	}
 }
 
+bool SendMessage(int client, const char[] message, any ...)
+{
+	bool spamming = true;
+	char finalmessage[254];
+
+	Call_StartForward(g_FloodCheck);
+	Call_PushCell(client);
+	Call_Finish(spamming);
+
+	Call_StartForward(g_FloodResult);
+	Call_PushCell(client);
+	Call_PushCell(spamming);
+	Call_Finish();
+
+	if (!spamming) {
+		VFormat(finalmessage, sizeof(finalmessage), message, 3);
+		PrintToChatAll("%s", finalmessage);
+	}
+
+	return spamming;
+}
+
 public Action OnSay(int client, const char[] command, int argc)
 {
+	bool anonymize = g_cvAnonymize.BoolValue, brohoof = g_cvColoredBrohoof.BoolValue;
 	char color[8] = "\x01", prefix[16], text[128];
-	
+
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
-	
+
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 
@@ -65,30 +95,26 @@ public Action OnSay(int client, const char[] command, int argc)
 		default:		strcopy(prefix, sizeof(prefix), "*SPEC* \x07CCCCCC");
 	}
 
-	if (g_cvColoredBrohoof.BoolValue) {
+	if (brohoof) {
 		if (!strcmp("/)", text) || !strcmp("(\\", text) || !strcmp("/]", text) || !strcmp("[\\", text)) {
 			GetManeSixColorPrefix(color, sizeof(color));
-			if (!(g_cvAnonymize.BoolValue)) {
-				PrintToChatAll("\x01%s%N\x01 :  %s%s", prefix, client, color, text);
-				PrintToServer("%N: %s", client, text);
+			if (!anonymize) {
+				if (!SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
+					PrintToServer("%N: %s", client, text);
 				return Plugin_Handled;
 			}
 		}
 	}
-	
+
 	if (text[0] == '>')
 		strcopy(color, sizeof(color), "\x07789922");
 
-	if (g_cvAnonymize.BoolValue) {
-		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", color, text);
-		PrintToServer("Anonymous: %s", text);
+	if (anonymize) {
+		if (!SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
+			PrintToServer("Anonymous: %s", text);
 	} else {
-		if (text[0] == '>') {
-			PrintToChatAll("\x01%s%N\x01 :  %s%s", prefix, client, color, text);
+		if (!SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);
-		} else {
-			return Plugin_Continue;
-		}
 	}
 
 	return Plugin_Handled;
