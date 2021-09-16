@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <tf2>
 
-#define PLUGIN_VERSION		"1.4.5"
+#define PLUGIN_VERSION		"1.4.6"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -24,8 +24,8 @@ public void OnPluginStart()
 	AddCommandListener(OnSay, "say");
 
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
-	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_NOTIFY | FCVAR_REPLICATED);
-	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_NOTIFY | FCVAR_REPLICATED);
+	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_PROTECTED);
+	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_PROTECTED);
 	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 }
 
