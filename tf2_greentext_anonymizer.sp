@@ -3,8 +3,9 @@
 
 #include <sourcemod>
 #include <tf2>
+#include <tf2_stocks>
 
-#define PLUGIN_VERSION		"1.6.0"
+#define PLUGIN_VERSION		"1.6.1"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -38,6 +39,13 @@ char manesixcolors[][] = {
 	"\x07B57ECA"
 };
 
+char teamcolors[][] = {
+	"",
+	"*SPEC* \x07CCCCCC",
+	"\x07FF4040",
+	"\x0799CCFF"
+};
+
 public void OnPluginStart()
 {
 	AddCommandListener(OnSay, "say");
@@ -64,15 +72,19 @@ bool SendMessage(int client, const char[] message, any ...)
 {
 	bool spamming = true;
 	char finalmessage[254];
+	
+	if (GetCommandFlags("sm_flood_time") != INVALID_FCVAR_FLAGS) {
+		Call_StartForward(g_FloodCheck);
+		Call_PushCell(client);
+		Call_Finish(spamming);
 
-	Call_StartForward(g_FloodCheck);
-	Call_PushCell(client);
-	Call_Finish(spamming);
-
-	Call_StartForward(g_FloodResult);
-	Call_PushCell(client);
-	Call_PushCell(spamming);
-	Call_Finish();
+		Call_StartForward(g_FloodResult);
+		Call_PushCell(client);
+		Call_PushCell(spamming);
+		Call_Finish();
+	} else {
+		spamming = false;
+	}
 
 	if (!spamming) {
 		VFormat(finalmessage, sizeof(finalmessage), message, 3);
@@ -86,6 +98,7 @@ public Action OnSay(int client, const char[] command, int argc)
 {
 	bool bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue;
 	char color[8] = "\x01", prefix[16], text[254];
+	TFTeam clientteam = TF2_GetClientTeam(client);
 
 	if(!client || client > MaxClients || !IsClientInGame(client)) 
 		return Plugin_Continue;
@@ -93,11 +106,7 @@ public Action OnSay(int client, const char[] command, int argc)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 
-	switch (GetClientTeam(client)) {
-		case TFTeam_Blue:	Format(prefix, sizeof(prefix), "%s\x0799CCFF", IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
-		case TFTeam_Red:	Format(prefix, sizeof(prefix), "%s\x07FF4040", IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
-		default:		strcopy(prefix, sizeof(prefix), "*SPEC* \x07CCCCCC");
-	}
+	Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
 
 	if (bBrohoof) {
 		for (int i = 0; i < sizeof(brohoofs); ++i) {
