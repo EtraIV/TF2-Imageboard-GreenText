@@ -4,8 +4,9 @@
 #include <sourcemod>
 #include <tf2>
 #include <tf2_stocks>
+#include <basecomm>
 
-#define PLUGIN_VERSION		"1.6.1"
+#define PLUGIN_VERSION		"1.7.0"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -32,7 +33,7 @@ char brohoofs[][] = {
 
 char manesixcolors[][] = {
 	"\x07EAEEF0",
-	"\x07E97035",
+	"\x07FABA62",
 	"\x07E580AD",
 	"\x07EAD566",
 	"\x0769A9DC",
@@ -68,10 +69,10 @@ public Action SelfAdvertise(Handle timer)
 	return Plugin_Continue;
 }
 
-bool SendMessage(int client, const char[] message, any ...)
+bool SendMessage(int client, const char[] format, any ...)
 {
 	bool spamming = true;
-	char finalmessage[254];
+	char message[254];
 	
 	if (GetCommandFlags("sm_flood_time") != INVALID_FCVAR_FLAGS) {
 		Call_StartForward(g_FloodCheck);
@@ -87,8 +88,12 @@ bool SendMessage(int client, const char[] message, any ...)
 	}
 
 	if (!spamming) {
-		VFormat(finalmessage, sizeof(finalmessage), message, 3);
-		PrintToChatAll("%s", finalmessage);
+		VFormat(message, sizeof(message), format, 3);
+		Handle buffer = StartMessageAll("SayText2");
+		BfWriteByte(buffer, client);
+		BfWriteByte(buffer, true);
+		BfWriteString(buffer, message);
+		EndMessage();
 	}
 
 	return spamming;
@@ -100,7 +105,7 @@ public Action OnSay(int client, const char[] command, int argc)
 	char color[8] = "\x01", prefix[16], text[254];
 	TFTeam clientteam = TF2_GetClientTeam(client);
 
-	if(!client || client > MaxClients || !IsClientInGame(client)) 
+	if(!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
 		return Plugin_Continue;
 
 	GetCmdArgString(text, sizeof(text));
