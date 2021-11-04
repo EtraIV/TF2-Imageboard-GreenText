@@ -6,7 +6,7 @@
 #include <tf2_stocks>
 #include <basecomm>
 
-#define PLUGIN_VERSION		"1.7.1-DEV"
+#define PLUGIN_VERSION		"1.7.1"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
