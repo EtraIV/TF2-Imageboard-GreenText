@@ -1,0 +1,19 @@
+"Updater"
+{
+	"Information"
+	{
+		"Version"
+		{
+			"Latest"	"1.8.0"
+		}
+
+		"Notes"	"Added Auto-Update functionality"
+	}
+
+	"Files"
+	{
+		"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
+		
+		"Source"	"Path_SM/scripting/tf2_greentext_anonymizer.sp"
+	}
+}
