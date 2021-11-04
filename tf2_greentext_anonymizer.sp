@@ -1,4 +1,3 @@
-#pragma newdecls required
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -8,7 +7,9 @@
 #undef REQUIRE_PLUGIN
 #include <updater>
 
-#define PLUGIN_VERSION		"1.8.0"
+#pragma newdecls required
+
+#define PLUGIN_VERSION		"1.8.1"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/addons/update.txt"
 
