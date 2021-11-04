@@ -34,10 +34,10 @@ char brohoofs[][] = {
 char manesixcolors[][] = {
 	"\x07EAEEF0",
 	"\x07FABA62",
-	"\x07F6ACC8",
-	"\x07FEF3A9",
-	"\x079EDBF8",
-	"\x07BCA4E8"
+	"\x07E580AD",
+	"\x07EAD566",
+	"\x0769A9DC",
+	"\x07B57ECA"
 };
 
 char teamcolors[][] = {
