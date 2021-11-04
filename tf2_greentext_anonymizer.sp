@@ -71,9 +71,30 @@ public Action SelfAdvertise(Handle timer)
 
 bool SendMessage(int client, const char[] format, any ...)
 {
-	bool spamming = true;
 	char message[254];
-	
+	Handle buffer = StartMessageAll("SayText2");
+
+	if (buffer == INVALID_HANDLE)
+		return false;
+
+	VFormat(message, sizeof(message), format, 3);
+	BfWriteByte(buffer, client);
+	BfWriteByte(buffer, true);
+	BfWriteString(buffer, message);
+	EndMessage();
+
+	return true;
+}
+
+public Action OnSay(int client, const char[] command, int argc)
+{
+	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue;
+	char color[8] = "\x01", prefix[16], text[254];
+	TFTeam clientteam = TF2_GetClientTeam(client);
+
+	if(!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
+		return Plugin_Continue;
+
 	if (GetCommandFlags("sm_flood_time") != INVALID_FCVAR_FLAGS) {
 		Call_StartForward(g_FloodCheck);
 		Call_PushCell(client);
@@ -87,26 +108,8 @@ bool SendMessage(int client, const char[] format, any ...)
 		spamming = false;
 	}
 
-	if (!spamming) {
-		VFormat(message, sizeof(message), format, 3);
-		Handle buffer = StartMessageAll("SayText2");
-		BfWriteByte(buffer, client);
-		BfWriteByte(buffer, true);
-		BfWriteString(buffer, message);
-		EndMessage();
-	}
-
-	return spamming;
-}
-
-public Action OnSay(int client, const char[] command, int argc)
-{
-	bool bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue;
-	char color[8] = "\x01", prefix[16], text[254];
-	TFTeam clientteam = TF2_GetClientTeam(client);
-
-	if(!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
-		return Plugin_Continue;
+	if (spamming)
+		return Plugin_Handled;
 
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
@@ -129,10 +132,10 @@ public Action OnSay(int client, const char[] command, int argc)
 		strcopy(color, sizeof(color), "\x07789922");
 
 	if (bAnonymize) {
-		if (!SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
+		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
 			PrintToServer("Anonymous: %s", text);
 	} else {
-		if (!SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
+		if (SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);
 	}
 
