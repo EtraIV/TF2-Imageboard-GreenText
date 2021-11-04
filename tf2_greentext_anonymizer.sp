@@ -8,7 +8,7 @@
 #undef REQUIRE_PLUGIN
 #include <updater>
 
-#define PLUGIN_VERSION		"1.8.0-DEV"
+#define PLUGIN_VERSION		"1.8.0"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/addons/update.txt"
 
