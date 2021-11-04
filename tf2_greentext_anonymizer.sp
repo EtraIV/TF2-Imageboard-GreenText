@@ -9,9 +9,9 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.8.1"
+#define PLUGIN_VERSION		"1.8.2"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
-#define UPDATE_URL			"http://208.167.249.183/addons/update.txt"
+#define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
 public Plugin myinfo = {
 	name = "[TF2] Greentexter and Anonymizer",
