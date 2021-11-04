@@ -90,7 +90,7 @@ public Action OnSay(int client, const char[] command, int argc)
 {
 	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue;
 	char color[8] = "\x01", prefix[16], text[254];
-	TFTeam clientteam = TF2_GetClientTeam(client);
+	TFTeam clientteam;
 
 	if(!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
 		return Plugin_Continue;
@@ -113,6 +113,8 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
+	
+	clientteam = TF2_GetClientTeam(client);
 
 	Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
 
