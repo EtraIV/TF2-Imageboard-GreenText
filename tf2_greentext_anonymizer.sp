@@ -128,7 +128,7 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
-	
+
 	clientteam = TF2_GetClientTeam(client);
 
 	Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
@@ -157,7 +157,7 @@ public Action OnSay(int client, const char[] command, int argc)
 			if (StrEqual("STEAM_0:1:591818880", steamid)) {
 				if (SendMessage(client, "\x07B57ECATwilight Sparkle\x01 :  %s%s", color, text)) {
 					PrintToServer("Twilight Sparkle: %s", text);
-					
+
 					return Plugin_Handled;
 				}
 			}
