@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.8.2"
+#define PLUGIN_VERSION		"1.8.3"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -24,6 +24,7 @@ public Plugin myinfo = {
 ConVar g4chVersion;
 ConVar g_cvAnonymize;
 ConVar g_cvColoredBrohoof;
+ConVar g_cvMaskOff;
 
 GlobalForward g_FloodCheck;
 GlobalForward g_FloodResult;
@@ -58,6 +59,7 @@ public void OnPluginStart()
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
 	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_PROTECTED);
 	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_PROTECTED);
+	g_cvMaskOff = CreateConVar("sm_maskoff", "1", "Reveal the truth", FCVAR_PROTECTED);
 
 	g_FloodCheck = new GlobalForward("OnClientFloodCheck", ET_Single, Param_Cell);
 	g_FloodResult = new GlobalForward("OnClientFloodResult", ET_Event, Param_Cell, Param_Cell);
@@ -101,11 +103,11 @@ bool SendMessage(int client, const char[] format, any ...)
 
 public Action OnSay(int client, const char[] command, int argc)
 {
-	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue;
-	char color[8] = "\x01", prefix[16], text[254];
+	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bMaskOff = g_cvMaskOff.BoolValue;
+	char color[8] = "\x01", prefix[16], steamid[32], text[254];
 	TFTeam clientteam;
 
-	if(!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
+	if (!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
 		return Plugin_Continue;
 
 	if (GetCommandFlags("sm_flood_time") != INVALID_FCVAR_FLAGS) {
@@ -148,8 +150,19 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	if (bAnonymize) {
 		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
-			PrintToServer("Anonymous: %s", text);
+			PrintToServer("Anonymous: %s", text);	
 	} else {
+		if (bMaskOff) {
+			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
+			if (StrEqual("STEAM_0:1:591818880", steamid)) {
+				if (SendMessage(client, "\x07B57ECATwilight Sparkle\x01 :  %s%s", color, text)) {
+					PrintToServer("Twilight Sparkle: %s", text);
+					
+					return Plugin_Handled;
+				}
+			}
+		}
+
 		if (SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);
 	}
