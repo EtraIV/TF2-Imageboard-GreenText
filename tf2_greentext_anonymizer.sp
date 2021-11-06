@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.9.1"
+#define PLUGIN_VERSION		"1.9.2"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -115,11 +115,11 @@ public Action ReloadNicknames(int client, int args)
 {
 	char path[PLATFORM_MAX_PATH], userid[32], nickname[64];
 	KeyValues kv;
-	
+
 	g_Nicknames.Clear();
-	
+
 	BuildPath(Path_SM, path, sizeof(path), "configs/tf2_greentext_anonymizer.cfg");
-	
+
 	if (!FileExists(path)) {
 		SetFailState("Configuration file %s not found.", path);
 		return Plugin_Stop;
@@ -147,10 +147,10 @@ public Action ReloadNicknames(int client, int args)
 
 	kv.Rewind();
 	delete kv;
-	
+
 	if (client)
 		PrintToChat(client, "Nicknames successfully reloaded.");
-	
+
 	return Plugin_Handled;
 }
 
@@ -158,6 +158,7 @@ public Action OnSay(int client, const char[] command, int argc)
 {
 	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bMaskOff = g_cvNicknames.BoolValue;
 	char brohoof[3], coloredbrohoof[12], color[8] = "\x01", nickname[64], prefix[16], steamid[32], text[254];
+	int i;
 	TFTeam clientteam;
 
 	if (!client || client > MaxClients || !IsClientInGame(client))
@@ -186,7 +187,7 @@ public Action OnSay(int client, const char[] command, int argc)
 	StripQuotes(text);
 
 	if (bBrohoof) {
-		for (int i = 0; i < sizeof(brohoofs); ++i) {
+		for (i = 0; i < sizeof(brohoofs); ++i) {
 			strcopy(brohoof, sizeof(brohoof), brohoofs[i]);
 			if (StrContains(text, brohoof) != -1) {
 				Format(coloredbrohoof, sizeof(coloredbrohoof), "%s%s\x01", manesixcolors[GetRandomInt(0, sizeof(manesixcolors)-1)], brohoof);
@@ -206,7 +207,7 @@ public Action OnSay(int client, const char[] command, int argc)
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
 				if (SendMessage(client, "\x07%s\x01 :  %s%s", nickname, color, text)) {
-					PrintToServer("%s: %s", nickname, text);
+					PrintToServer("%N: %s", client, text);
 
 					return Plugin_Handled;
 				}

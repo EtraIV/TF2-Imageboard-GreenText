@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.9.1"
+			"Latest"	"1.9.2"
 		}
 
-		"Notes"	"Added a command to reload nicknames"
+		"Notes"	"Fixed message logging"
 	}
 
 	"Files"
