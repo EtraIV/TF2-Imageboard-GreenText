@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.8.3"
+#define PLUGIN_VERSION		"1.8.4"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -107,8 +107,11 @@ public Action OnSay(int client, const char[] command, int argc)
 	char color[8] = "\x01", prefix[16], steamid[32], text[254];
 	TFTeam clientteam;
 
-	if (!client || client > MaxClients || !IsClientInGame(client) || BaseComm_IsClientMuted(client))
+	if (!client || client > MaxClients || !IsClientInGame(client))
 		return Plugin_Continue;
+		
+	if (BaseComm_IsClientMuted(client))
+		return Plugin_Handled;
 
 	if (GetCommandFlags("sm_flood_time") != INVALID_FCVAR_FLAGS) {
 		Call_StartForward(g_FloodCheck);

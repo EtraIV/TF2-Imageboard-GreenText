@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.8.3"
+			"Latest"	"1.8.4"
 		}
 
-		"Notes"	"Reveal the truth"
+		"Notes"	"Fix player mute"
 	}
 
 	"Files"
