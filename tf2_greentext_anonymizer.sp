@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.9.0-DEV"
+#define PLUGIN_VERSION		"1.9.0"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -67,7 +67,7 @@ public void OnPluginStart()
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
 	g_cvAnonymize = CreateConVar("sm_anonymize", "0", "Enables name anonymization in chat", FCVAR_PROTECTED);
 	g_cvColoredBrohoof = CreateConVar("sm_coloredbrohoof", "0", "Enables mane six-colored brohooves in chat", FCVAR_PROTECTED);
-	g_cvMaskOff = CreateConVar("sm_maskoff", "1", "Reveal the truth", FCVAR_PROTECTED);
+	g_cvMaskOff = CreateConVar("sm_nicknames", "1", "Use colored player nicknames", FCVAR_PROTECTED);
 
 	g_FloodCheck = new GlobalForward("OnClientFloodCheck", ET_Single, Param_Cell);
 	g_FloodResult = new GlobalForward("OnClientFloodResult", ET_Event, Param_Cell, Param_Cell);
@@ -79,7 +79,7 @@ public void OnPluginStart()
 	if (LibraryExists("updater"))
 		Updater_AddPlugin(UPDATE_URL);
 
-	BuildPath(Path_SM, path, sizeof(path), "configs/greentext_anonymizer.cfg");
+	BuildPath(Path_SM, path, sizeof(path), "configs/tf2_greentext_anonymizer.cfg");
 	
 	if (!FileExists(path)) {
 		SetFailState("Configuration file %s not found.", path);
@@ -144,7 +144,7 @@ bool SendMessage(int client, const char[] format, any ...)
 public Action OnSay(int client, const char[] command, int argc)
 {
 	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bMaskOff = g_cvMaskOff.BoolValue;
-	char color[8] = "\x01", prefix[16], steamid[32], text[254];
+	char brohoof[3], coloredbrohoof[12], color[8] = "\x01", nickname[64], prefix[16], steamid[32], text[254];
 	TFTeam clientteam;
 
 	if (!client || client > MaxClients || !IsClientInGame(client))
@@ -172,16 +172,10 @@ public Action OnSay(int client, const char[] command, int argc)
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
 
-	clientteam = TF2_GetClientTeam(client);
-
-	Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
-
 	if (bBrohoof) {
 		for (int i = 0; i < sizeof(brohoofs); ++i) {
-			char brohoof[3];
 			strcopy(brohoof, sizeof(brohoof), brohoofs[i]);
 			if (StrContains(text, brohoof) != -1) {
-				char coloredbrohoof[12];
 				Format(coloredbrohoof, sizeof(coloredbrohoof), "%s%s\x01", manesixcolors[GetRandomInt(0, sizeof(manesixcolors)-1)], brohoof);
 				ReplaceString(text, sizeof(text), brohoof, coloredbrohoof);
 			}
@@ -197,14 +191,18 @@ public Action OnSay(int client, const char[] command, int argc)
 	} else {
 		if (bMaskOff) {
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
-			if (StrEqual("STEAM_0:1:591818880", steamid)) {
-				if (SendMessage(client, "\x07B57ECATwilight Sparkle\x01 :  %s%s", color, text)) {
-					PrintToServer("Twilight Sparkle: %s", text);
+			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
+				if (SendMessage(client, "\x07%s\x01 :  %s%s", nickname, color, text)) {
+					PrintToServer("%s: %s", nickname, text);
 
 					return Plugin_Handled;
 				}
 			}
 		}
+
+		clientteam = TF2_GetClientTeam(client);
+
+		Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
 
 		if (SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);

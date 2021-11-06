@@ -4,15 +4,16 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.8.5"
+			"Latest"	"1.9.0"
 		}
 
-		"Notes"	"Fix player mute"
+		"Notes"	"Made full nickname customization system"
 	}
 
 	"Files"
 	{
 		"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
+		"Plugin"	"Path_SM/configs/tf2_greentext_anonymizer.cfg"
 		
 		"Source"	"Path_SM/scripting/tf2_greentext_anonymizer.sp"
 	}
