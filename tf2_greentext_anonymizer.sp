@@ -3,7 +3,10 @@
 #include <sourcemod>
 #include <tf2>
 #include <tf2_stocks>
+#include <adt_trie>
 #include <basecomm>
+#include <files>
+#include <keyvalues>
 #undef REQUIRE_PLUGIN
 #include <updater>
 
@@ -28,6 +31,8 @@ ConVar g_cvMaskOff;
 
 GlobalForward g_FloodCheck;
 GlobalForward g_FloodResult;
+
+StringMap g_Nicknames;
 
 char brohoofs[][] = {
 	"/)",
@@ -54,6 +59,9 @@ char teamcolors[][] = {
 
 public void OnPluginStart()
 {
+	char path[PLATFORM_MAX_PATH], userid[32], nickname[64];
+	KeyValues kv;
+
 	AddCommandListener(OnSay, "say");
 
 	g4chVersion = CreateConVar(PLUGIN_VERSION_CVAR, PLUGIN_VERSION, "Plugin version.", FCVAR_SPONLY | FCVAR_NOTIFY | FCVAR_PRINTABLEONLY);
@@ -64,10 +72,42 @@ public void OnPluginStart()
 	g_FloodCheck = new GlobalForward("OnClientFloodCheck", ET_Single, Param_Cell);
 	g_FloodResult = new GlobalForward("OnClientFloodResult", ET_Event, Param_Cell, Param_Cell);
 
+	g_Nicknames = new StringMap();
+
 	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 
 	if (LibraryExists("updater"))
 		Updater_AddPlugin(UPDATE_URL);
+
+	BuildPath(Path_SM, path, sizeof(path), "configs/greentext_anonymizer.cfg");
+	
+	if (!FileExists(path)) {
+		SetFailState("Configuration file %s not found.", path);
+		return;
+	}
+
+	kv = new KeyValues("GreentextAnonymizer");
+
+	if (!kv.ImportFromFile(path)) {
+		SetFailState("Error importing config file %s", path);
+		delete kv;
+		return;
+	}
+
+	if (!kv.GotoFirstSubKey()) {
+		SetFailState("Error reading first key from config file %s", path);
+		delete kv;
+		return;
+	}
+
+	do {
+		kv.GetSectionName(userid, sizeof(userid));
+		kv.GetString("nickname", nickname, sizeof(nickname));
+		g_Nicknames.SetString(userid, nickname, true);
+	} while (kv.GotoNextKey());
+
+	kv.Rewind();
+	delete kv;
 }
 
 public void OnLibraryAdded(const char[] name)
