@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.9.0"
+			"Latest"	"1.9.1"
 		}
 
-		"Notes"	"Made full nickname customization system"
+		"Notes"	"Added a command to reload nicknames"
 	}
 
 	"Files"
