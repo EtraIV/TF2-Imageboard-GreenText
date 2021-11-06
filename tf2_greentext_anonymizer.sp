@@ -9,7 +9,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.8.5"
+#define PLUGIN_VERSION		"1.9.0-DEV"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -109,7 +109,7 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	if (!client || client > MaxClients || !IsClientInGame(client))
 		return Plugin_Continue;
-		
+
 	if (BaseComm_IsClientGagged(client))
 		return Plugin_Stop;
 
