@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.0"
+#define PLUGIN_VERSION		"1.10.1"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -249,20 +249,19 @@ public Action OnSay(int client, const char[] command, int argc)
 		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
 			PrintToServer("Anonymous: %s", text);
 	} else {
+		clientteam = TF2_GetClientTeam(client);
+		Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
+
 		if (bNickname) {
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
-				if (SendMessage(client, "%s\x01 :  %s%s", nickname, color, text)) {
+				if (SendMessage(client, "\x01%s%s\x01 :  %s%s", prefix, nickname, color, text)) {
 					PrintToServer("%N: %s", client, text);
 
 					return Plugin_Handled;
 				}
 			}
 		}
-
-		clientteam = TF2_GetClientTeam(client);
-
-		Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
 
 		if (SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);

@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.10.0"
+			"Latest"	"1.10.1"
 		}
 
-		"Notes"	"Revamped nicknaming system"
+		"Notes"	"Added default colors for when nicknames are in use"
 	}
 
 	"Files"
