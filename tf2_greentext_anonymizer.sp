@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.9.3"
+#define PLUGIN_VERSION		"1.10.0"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -113,40 +113,82 @@ bool SendMessage(int client, const char[] format, any ...)
 
 public Action ReloadNicknames(int client, int args)
 {
-	char path[PLATFORM_MAX_PATH], userid[32], nickname[64];
-	KeyValues kv;
+	char pathNicknames[PLATFORM_MAX_PATH], pathNickColors[PLATFORM_MAX_PATH], userid[32], nickname[64], colortag[32], colorhex[7], color[8];
+	int i;
+	KeyValues kvNicknames, kvNickColors;
+	StringMap colors = new StringMap();
+	StringMapSnapshot colorkeys;
 
 	g_Nicknames.Clear();
 
-	BuildPath(Path_SM, path, sizeof(path), "configs/tf2_greentext_anonymizer.cfg");
+	BuildPath(Path_SM, pathNickColors, sizeof(pathNickColors), "configs/nickname_colors.cfg");
 
-	if (!FileExists(path)) {
-		SetFailState("Configuration file %s not found.", path);
+	if (!FileExists(pathNickColors)) {
+		SetFailState("Configuration file %s not found.", pathNicknames);
 		return Plugin_Stop;
 	}
 
-	kv = new KeyValues("GreentextAnonymizer");
+	kvNickColors = new KeyValues("Nickname Colors");
 
-	if (!kv.ImportFromFile(path)) {
-		SetFailState("Error importing config file %s", path);
-		delete kv;
+	if (!kvNickColors.ImportFromFile(pathNickColors)) {
+		SetFailState("Error importing config file %s", pathNickColors);
+		delete kvNickColors;
 		return Plugin_Stop;
 	}
 
-	if (!kv.GotoFirstSubKey()) {
-		SetFailState("Error reading first key from config file %s", path);
-		delete kv;
+	if (!kvNickColors.GotoFirstSubKey()) {
+		SetFailState("Error reading first key from config file %s", pathNickColors);
+		delete kvNickColors;
 		return Plugin_Stop;
 	}
 
 	do {
-		kv.GetSectionName(userid, sizeof(userid));
-		kv.GetString("nickname", nickname, sizeof(nickname));
-		g_Nicknames.SetString(userid, nickname, true);
-	} while (kv.GotoNextKey());
+		kvNickColors.GetSectionName(colortag, sizeof(colortag));
+		kvNickColors.GetString("color", colorhex, sizeof(colorhex));
+		Format(color, sizeof(color), "\x07%s", colorhex);
+		colors.SetString(colortag, color, true);
+	} while (kvNickColors.GotoNextKey());
 
-	kv.Rewind();
-	delete kv;
+	kvNickColors.Rewind();
+	delete kvNickColors;
+	colorkeys = colors.Snapshot();
+
+	BuildPath(Path_SM, pathNicknames, sizeof(pathNicknames), "configs/tf2_greentext_anonymizer.cfg");
+
+	if (!FileExists(pathNicknames)) {
+		SetFailState("Configuration file %s not found.", pathNicknames);
+		return Plugin_Stop;
+	}
+
+	kvNicknames = new KeyValues("GreentextAnonymizer");
+
+	if (!kvNicknames.ImportFromFile(pathNicknames)) {
+		SetFailState("Error importing config file %s", pathNicknames);
+		delete kvNicknames;
+		return Plugin_Stop;
+	}
+
+	if (!kvNicknames.GotoFirstSubKey()) {
+		SetFailState("Error reading first key from config file %s", pathNicknames);
+		delete kvNicknames;
+		return Plugin_Stop;
+	}
+
+	do {
+		kvNicknames.GetSectionName(userid, sizeof(userid));
+		kvNicknames.GetString("nickname", nickname, sizeof(nickname));
+		for (i = 0; i < colorkeys.Length; ++i) {
+			colorkeys.GetKey(i, colortag, sizeof(colortag));
+			colors.GetString(colortag, color, sizeof(color));
+			ReplaceString(nickname, sizeof(nickname), colortag, color);
+		}
+		g_Nicknames.SetString(userid, nickname, true);
+	} while (kvNicknames.GotoNextKey());
+
+	kvNicknames.Rewind();
+	delete kvNicknames;
+	delete colorkeys;
+	delete colors;
 
 	if (client)
 		PrintToChat(client, "Nicknames successfully reloaded.");
@@ -156,7 +198,7 @@ public Action ReloadNicknames(int client, int args)
 
 public Action OnSay(int client, const char[] command, int argc)
 {
-	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bMaskOff = g_cvNicknames.BoolValue;
+	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bNickname = g_cvNicknames.BoolValue;
 	char brohoof[3], coloredbrohoof[12], color[8] = "\x01", nickname[64], prefix[16], steamid[32], text[254];
 	int i;
 	TFTeam clientteam;
@@ -185,7 +227,6 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
-
 	TrimString(text);
 
 	if (!strlen(text))
@@ -206,12 +247,12 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	if (bAnonymize) {
 		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
-			PrintToServer("Anonymous: %s", text);	
+			PrintToServer("Anonymous: %s", text);
 	} else {
-		if (bMaskOff) {
+		if (bNickname) {
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
-				if (SendMessage(client, "\x07%s\x01 :  %s%s", nickname, color, text)) {
+				if (SendMessage(client, "%s\x01 :  %s%s", nickname, color, text)) {
 					PrintToServer("%N: %s", client, text);
 
 					return Plugin_Handled;

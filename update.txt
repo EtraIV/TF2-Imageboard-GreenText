@@ -4,23 +4,17 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.9.3"
-			"Previous"	"1.9.2"
+			"Latest"	"1.10.0"
 		}
 
-		"Notes"	"Fixed whitespaces not being trimmed from messages"
+		"Notes"	"Revamped nicknaming system"
 	}
 
 	"Files"
 	{
-		"Patch"
-		{
-			"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
-
-			"Source"	"Path_SM/scripting/tf2_greentext_anonymizer.sp"
-		}
 		"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
 		"Plugin"	"Path_SM/configs/tf2_greentext_anonymizer.cfg"
+		"Plugin"	"Path_SM/configs/nickname_colors.cfg"
 		
 		"Source"	"Path_SM/scripting/tf2_greentext_anonymizer.sp"
 	}
