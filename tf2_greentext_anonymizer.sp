@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.9.2"
+#define PLUGIN_VERSION		"1.9.3"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -185,6 +185,11 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	GetCmdArgString(text, sizeof(text));
 	StripQuotes(text);
+
+	TrimString(text);
+
+	if (!strlen(text))
+		return Plugin_Stop;
 
 	if (bBrohoof) {
 		for (i = 0; i < sizeof(brohoofs); ++i) {
