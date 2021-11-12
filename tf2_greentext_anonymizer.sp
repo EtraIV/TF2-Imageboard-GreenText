@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.1"
+#define PLUGIN_VERSION		"1.10.2"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -48,13 +48,6 @@ char manesixcolors[][] = {
 	"\x07EAD566",
 	"\x0769A9DC",
 	"\x07B57ECA"
-};
-
-char teamcolors[][] = {
-	"",
-	"*SPEC* \x07CCCCCC",
-	"\x07FF4040",
-	"\x0799CCFF"
 };
 
 public void OnPluginStart()
@@ -199,8 +192,7 @@ public Action ReloadNicknames(int client, int args)
 public Action OnSay(int client, const char[] command, int argc)
 {
 	bool spamming = true, bAnonymize = g_cvAnonymize.BoolValue, bBrohoof = g_cvColoredBrohoof.BoolValue, bNickname = g_cvNicknames.BoolValue;
-	char brohoof[3], coloredbrohoof[12], color[8] = "\x01", nickname[64], prefix[16], steamid[32], text[254];
-	int i;
+	char brohoof[3], coloredbrohoof[12], color[8] = "\x01", nickname[64], prefix[8], steamid[32], text[254];
 	TFTeam clientteam;
 
 	if (!client || client > MaxClients || !IsClientInGame(client))
@@ -233,7 +225,7 @@ public Action OnSay(int client, const char[] command, int argc)
 		return Plugin_Stop;
 
 	if (bBrohoof) {
-		for (i = 0; i < sizeof(brohoofs); ++i) {
+		for (int i = 0; i < sizeof(brohoofs); ++i) {
 			strcopy(brohoof, sizeof(brohoof), brohoofs[i]);
 			if (StrContains(text, brohoof) != -1) {
 				Format(coloredbrohoof, sizeof(coloredbrohoof), "%s%s\x01", manesixcolors[GetRandomInt(0, sizeof(manesixcolors)-1)], brohoof);
@@ -250,12 +242,12 @@ public Action OnSay(int client, const char[] command, int argc)
 			PrintToServer("Anonymous: %s", text);
 	} else {
 		clientteam = TF2_GetClientTeam(client);
-		Format(prefix, sizeof(prefix), "%s%s", (clientteam == TFTeam_Spectator || IsPlayerAlive(client)) ? NULL_STRING : "*DEAD* ", teamcolors[clientteam]);
+		strcopy(prefix, sizeof(prefix), clientteam == TFTeam_Spectator ? "*SPEC* " : IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
 
 		if (bNickname) {
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
-				if (SendMessage(client, "\x01%s%s\x01 :  %s%s", prefix, nickname, color, text)) {
+				if (SendMessage(client, "\x01%s\x03%s\x01 :  %s%s", prefix, nickname, color, text)) {
 					PrintToServer("%N: %s", client, text);
 
 					return Plugin_Handled;
@@ -263,7 +255,7 @@ public Action OnSay(int client, const char[] command, int argc)
 			}
 		}
 
-		if (SendMessage(client, "\x01%s%N\x01 :  %s%s", prefix, client, color, text))
+		if (SendMessage(client, "\x01%s\x03%N\x01 :  %s%s", prefix, client, color, text))
 			PrintToServer("%N: %s", client, text);
 	}
 

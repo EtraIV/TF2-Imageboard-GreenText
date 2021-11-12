@@ -4,14 +4,20 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.10.1"
+			"Latest"	"1.10.2"
 		}
 
-		"Notes"	"Added default colors for when nicknames are in use"
+		"Notes"	"Simplified team color formatting"
 	}
 
 	"Files"
 	{
+	"Patch"
+		{
+			"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
+
+			"Source"	"Path_SM/scripting/tf2_greentext_anonymizer.sp"
+		}
 		"Plugin"	"Path_SM/plugins/tf2_greentext_anonymizer.smx"
 		"Plugin"	"Path_SM/configs/tf2_greentext_anonymizer.cfg"
 		"Plugin"	"Path_SM/configs/nickname_colors.cfg"
