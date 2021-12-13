@@ -12,7 +12,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.2"
+#define PLUGIN_VERSION		"1.10.3"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 #define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
@@ -24,15 +24,15 @@ public Plugin myinfo = {
 	url = "https://github.com/EtraIV/TF2-Imageboard-GreenText"
 };
 
-ConVar g4chVersion;
-ConVar g_cvAnonymize;
-ConVar g_cvColoredBrohoof;
-ConVar g_cvNicknames;
+ConVar g4chVersion = null;
+ConVar g_cvAnonymize = null;
+ConVar g_cvColoredBrohoof = null;
+ConVar g_cvNicknames = null;
 
-GlobalForward g_FloodCheck;
-GlobalForward g_FloodResult;
+GlobalForward g_FloodCheck = null;
+GlobalForward g_FloodResult = null;
 
-StringMap g_Nicknames;
+StringMap g_Nicknames = null;
 
 char brohoofs[][] = {
 	"/)",
@@ -106,80 +106,79 @@ bool SendMessage(int client, const char[] format, any ...)
 
 public Action ReloadNicknames(int client, int args)
 {
-	char pathNicknames[PLATFORM_MAX_PATH], pathNickColors[PLATFORM_MAX_PATH], userid[32], nickname[64], colortag[32], colorhex[7], color[8];
-	int i;
-	KeyValues kvNicknames, kvNickColors;
+	char path[PLATFORM_MAX_PATH], userid[32], nickname[64], colortag[32], colorhex[7], color[8];
+	KeyValues kv = null;
 	StringMap colors = new StringMap();
-	StringMapSnapshot colorkeys;
+	StringMapSnapshot colorkeys = null;
 
 	g_Nicknames.Clear();
 
-	BuildPath(Path_SM, pathNickColors, sizeof(pathNickColors), "configs/nickname_colors.cfg");
+	BuildPath(Path_SM, path, sizeof(path), "configs/nickname_colors.cfg");
 
-	if (!FileExists(pathNickColors)) {
-		SetFailState("Configuration file %s not found.", pathNicknames);
+	if (!FileExists(path)) {
+		SetFailState("Configuration file %s not found.", path);
 		return Plugin_Stop;
 	}
 
-	kvNickColors = new KeyValues("Nickname Colors");
+	kv = new KeyValues("Nickname Colors");
 
-	if (!kvNickColors.ImportFromFile(pathNickColors)) {
-		SetFailState("Error importing config file %s", pathNickColors);
-		delete kvNickColors;
+	if (!kv.ImportFromFile(path)) {
+		SetFailState("Error importing config file %s", path);
+		delete kv;
 		return Plugin_Stop;
 	}
 
-	if (!kvNickColors.GotoFirstSubKey()) {
-		SetFailState("Error reading first key from config file %s", pathNickColors);
-		delete kvNickColors;
+	if (!kv.GotoFirstSubKey()) {
+		SetFailState("Error reading first key from config file %s", path);
+		delete kv;
 		return Plugin_Stop;
 	}
 
 	do {
-		kvNickColors.GetSectionName(colortag, sizeof(colortag));
-		kvNickColors.GetString("color", colorhex, sizeof(colorhex));
+		kv.GetSectionName(colortag, sizeof(colortag));
+		kv.GetString("color", colorhex, sizeof(colorhex));
 		Format(color, sizeof(color), "\x07%s", colorhex);
 		colors.SetString(colortag, color, true);
-	} while (kvNickColors.GotoNextKey());
+	} while (kv.GotoNextKey());
 
-	kvNickColors.Rewind();
-	delete kvNickColors;
+	kv.Rewind();
+	delete kv;
 	colorkeys = colors.Snapshot();
 
-	BuildPath(Path_SM, pathNicknames, sizeof(pathNicknames), "configs/tf2_greentext_anonymizer.cfg");
+	BuildPath(Path_SM, path, sizeof(path), "configs/tf2_greentext_anonymizer.cfg");
 
-	if (!FileExists(pathNicknames)) {
-		SetFailState("Configuration file %s not found.", pathNicknames);
+	if (!FileExists(path)) {
+		SetFailState("Configuration file %s not found.", path);
 		return Plugin_Stop;
 	}
 
-	kvNicknames = new KeyValues("GreentextAnonymizer");
+	kv = new KeyValues("GreentextAnonymizer");
 
-	if (!kvNicknames.ImportFromFile(pathNicknames)) {
-		SetFailState("Error importing config file %s", pathNicknames);
-		delete kvNicknames;
+	if (!kv.ImportFromFile(path)) {
+		SetFailState("Error importing config file %s", path);
+		delete kv;
 		return Plugin_Stop;
 	}
 
-	if (!kvNicknames.GotoFirstSubKey()) {
-		SetFailState("Error reading first key from config file %s", pathNicknames);
-		delete kvNicknames;
+	if (!kv.GotoFirstSubKey()) {
+		SetFailState("Error reading first key from config file %s", path);
+		delete kv;
 		return Plugin_Stop;
 	}
 
 	do {
-		kvNicknames.GetSectionName(userid, sizeof(userid));
-		kvNicknames.GetString("nickname", nickname, sizeof(nickname));
-		for (i = 0; i < colorkeys.Length; ++i) {
+		kv.GetSectionName(userid, sizeof(userid));
+		kv.GetString("nickname", nickname, sizeof(nickname));
+		for (int i = 0; i < colorkeys.Length; ++i) {
 			colorkeys.GetKey(i, colortag, sizeof(colortag));
 			colors.GetString(colortag, color, sizeof(color));
 			ReplaceString(nickname, sizeof(nickname), colortag, color);
 		}
 		g_Nicknames.SetString(userid, nickname, true);
-	} while (kvNicknames.GotoNextKey());
+	} while (kv.GotoNextKey());
 
-	kvNicknames.Rewind();
-	delete kvNicknames;
+	kv.Rewind();
+	delete kv;
 	delete colorkeys;
 	delete colors;
 
@@ -239,7 +238,7 @@ public Action OnSay(int client, const char[] command, int argc)
 
 	if (bAnonymize) {
 		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
-			PrintToServer("Anonymous: %s", text);
+			LogMessage("Anonymous: %s", text);
 	} else {
 		clientteam = TF2_GetClientTeam(client);
 		strcopy(prefix, sizeof(prefix), clientteam == TFTeam_Spectator ? "*SPEC* " : IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
@@ -248,7 +247,7 @@ public Action OnSay(int client, const char[] command, int argc)
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
 				if (SendMessage(client, "\x01%s\x03%s\x01 :  %s%s", prefix, nickname, color, text)) {
-					PrintToServer("%N: %s", client, text);
+					LogMessage("%N: %s", client, text);
 
 					return Plugin_Handled;
 				}
@@ -256,7 +255,7 @@ public Action OnSay(int client, const char[] command, int argc)
 		}
 
 		if (SendMessage(client, "\x01%s\x03%N\x01 :  %s%s", prefix, client, color, text))
-			PrintToServer("%N: %s", client, text);
+			LogMessage("%N: %s", client, text);
 	}
 
 	return Plugin_Handled;

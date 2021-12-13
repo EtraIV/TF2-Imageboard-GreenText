@@ -4,10 +4,10 @@
 	{
 		"Version"
 		{
-			"Latest"	"1.10.2"
+			"Latest"	"1.10.3"
 		}
 
-		"Notes"	"Simplified team color formatting"
+		"Notes"	"Replace PrintToServer with LogMessage"
 	}
 
 	"Files"
