@@ -7,14 +7,11 @@
 #include <basecomm>
 #include <files>
 #include <keyvalues>
-#undef REQUIRE_PLUGIN
-#include <updater>
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.3"
+#define PLUGIN_VERSION		"1.10.4"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
-#define UPDATE_URL			"http://208.167.249.183/tf/addons/update.txt"
 
 public Plugin myinfo = {
 	name = "[TF2] Greentexter and Anonymizer",
@@ -67,16 +64,7 @@ public void OnPluginStart()
 
 	CreateTimer(900.0, SelfAdvertise, _, TIMER_REPEAT);
 
-	if (LibraryExists("updater"))
-		Updater_AddPlugin(UPDATE_URL);
-
 	ReloadNicknames(0, 1);
-}
-
-public void OnLibraryAdded(const char[] name)
-{
-	if (StrEqual(name, "updater"))
-		Updater_AddPlugin(UPDATE_URL);
 }
 
 public Action SelfAdvertise(Handle timer)
