@@ -1,8 +1,7 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <tf2>
-#include <tf2_stocks>
+#include <tf2c>
 #include <adt_trie>
 #include <basecomm>
 #include <files>
@@ -10,11 +9,11 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.5"
+#define PLUGIN_VERSION		"1.11.tf2c"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
-	name = "[TF2] Greentexter and Anonymizer",
+	name = "[TF2C] Greentexter and Anonymizer",
 	author = "2010kohtep, Etra",
 	description = "Greentexts lines that start with a >, and anonymizes usernames in chat.",
 	version = PLUGIN_VERSION,
@@ -38,13 +37,22 @@ char brohoofs[][] = {
 	"[\\"
 };
 
+char teamcolors[][] = {
+	"CCCCCC",	// Unassigned
+	"CCCCCC",	// Spectator
+	"FF4040",	// Red
+	"99CCFF",	// Blue
+	"9AFF9A",	// Green
+	"FFB400"	// Yellow
+};
+
 char manesixcolors[][] = {
-	"\x07EAEEF0",
-	"\x07FABA62",
-	"\x07E580AD",
-	"\x07EAD566",
-	"\x0769A9DC",
-	"\x07B57ECA"
+	"EAEEF0",
+	"FABA62",
+	"E580AD",
+	"EAD566",
+	"69A9DC",
+	"B57ECA"
 };
 
 public void OnPluginStart()
@@ -73,25 +81,6 @@ public Action SelfAdvertise(Handle timer)
 		PrintToChatAll("\x01It's \x07117743Anonymous\x01 Friday! All names in allchat are anonymized.");
 
 	return Plugin_Continue;
-}
-
-bool SendMessage(int client, const char[] format, any ...)
-{
-	char message[254];
-	BfWrite buffer = UserMessageToBfWrite(StartMessageAll("SayText2"));
-
-	if (buffer == INVALID_HANDLE)
-		return false;
-
-	VFormat(message, sizeof(message), format, 3);
-	buffer.WriteNum(client);
-	buffer.WriteBool(true);
-	buffer.WriteString(message);
-	EndMessage();
-
-	delete buffer;
-
-	return true;
 }
 
 public Action ReloadNicknames(int client, int args)
@@ -135,7 +124,7 @@ public Action ReloadNicknames(int client, int args)
 	delete kv;
 	colorkeys = colors.Snapshot();
 
-	BuildPath(Path_SM, path, sizeof(path), "configs/tf2_greentext_anonymizer.cfg");
+	BuildPath(Path_SM, path, sizeof(path), "configs/tf2c_greentext_anonymizer.cfg");
 
 	if (!FileExists(path)) {
 		SetFailState("Configuration file %s not found.", path);
@@ -217,7 +206,7 @@ public Action OnSay(int client, const char[] command, int argc)
 		for (int i = 0; i < sizeof(brohoofs); ++i) {
 			strcopy(brohoof, sizeof(brohoof), brohoofs[i]);
 			if (StrContains(text, brohoof) != -1) {
-				Format(coloredbrohoof, sizeof(coloredbrohoof), "%s%s\x01", manesixcolors[GetRandomInt(0, sizeof(manesixcolors)-1)], brohoof);
+				Format(coloredbrohoof, sizeof(coloredbrohoof), "\x07%s%s\x01", manesixcolors[GetRandomInt(0, sizeof(manesixcolors)-1)], brohoof);
 				ReplaceString(text, sizeof(text), brohoof, coloredbrohoof);
 			}
 		}
@@ -227,8 +216,7 @@ public Action OnSay(int client, const char[] command, int argc)
 		strcopy(color, sizeof(color), "\x07789922");
 
 	if (bAnonymize) {
-		if (SendMessage(client, "\x07117743Anonymous\x01 :  %s%s", color, text))
-			LogMessage("Anonymous: %s", text);
+		PrintToChatAll("\x07117743Anonymous\x01 :  %s%s", color, text);
 	} else {
 		clientteam = TF2_GetClientTeam(client);
 		strcopy(prefix, sizeof(prefix), clientteam == TFTeam_Spectator ? "*SPEC* " : IsPlayerAlive(client) ? NULL_STRING : "*DEAD* ");
@@ -236,16 +224,11 @@ public Action OnSay(int client, const char[] command, int argc)
 		if (bNickname) {
 			GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 			if (g_Nicknames.GetString(steamid, nickname, sizeof(nickname))) {
-				if (SendMessage(client, "\x01%s\x03%s\x01 :  %s%s", prefix, nickname, color, text)) {
-					LogMessage("%N: %s", client, text);
-
-					return Plugin_Handled;
-				}
+				PrintToChatAll("\x01%s\x07%s%s\x01 :  %s%s", prefix, teamcolors[clientteam], nickname, color, text);
+				return Plugin_Handled;
 			}
 		}
-
-		if (SendMessage(client, "\x01%s\x03%N\x01 :  %s%s", prefix, client, color, text))
-			LogMessage("%N: %s", client, text);
+		PrintToChatAll("\x01%s\x07%s%N\x01 :  %s%s", prefix, teamcolors[clientteam], client, color, text);
 	}
 
 	return Plugin_Handled;
