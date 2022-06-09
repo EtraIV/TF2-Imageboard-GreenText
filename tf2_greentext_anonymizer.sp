@@ -89,8 +89,6 @@ bool SendMessage(int client, const char[] format, any ...)
 	buffer.WriteString(message);
 	EndMessage();
 
-	delete buffer;
-
 	return true;
 }
 
