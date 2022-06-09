@@ -10,7 +10,7 @@
 
 #pragma newdecls required
 
-#define PLUGIN_VERSION		"1.10.4"
+#define PLUGIN_VERSION		"1.10.5"
 #define PLUGIN_VERSION_CVAR	"sm_4chquoter_version"
 
 public Plugin myinfo = {
@@ -78,16 +78,18 @@ public Action SelfAdvertise(Handle timer)
 bool SendMessage(int client, const char[] format, any ...)
 {
 	char message[254];
-	Handle buffer = StartMessageAll("SayText2");
+	BfWrite buffer = UserMessageToBfWrite(StartMessageAll("SayText2"));
 
 	if (buffer == INVALID_HANDLE)
 		return false;
 
 	VFormat(message, sizeof(message), format, 3);
-	BfWriteByte(buffer, client);
-	BfWriteByte(buffer, true);
-	BfWriteString(buffer, message);
+	buffer.WriteNum(client);
+	buffer.WriteBool(true);
+	buffer.WriteString(message);
 	EndMessage();
+
+	delete buffer;
 
 	return true;
 }
